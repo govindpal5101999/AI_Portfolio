@@ -202,7 +202,7 @@
     <div id="chatBox">
       <input id="userInput" type="text" placeholder="Ask something..."
         style="flex:1; padding:10px; border-radius:5px; border:none; outline:none; font-size:16px;">
-      <button onclick="handleUserMessage()">Ask</button>
+      <button id="askQuestions" onclick="handleUserMessage()">Ask</button>
     </div>
   </div>
 
@@ -422,13 +422,9 @@
     function speakText() {
       const text = "Hello There...! My name is Govind Pal experienced and results-driven Software Engineer with over 4 years in full stack development, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong database knowledge (PostgreSQL, MySQL, MongoDB). Ex-Trinitian, delivering GIS-based solutions using tools like Leaflet, GeoServer, and NCWMS Server. Proficient in deploying applications via Tomcat for seamless local access. Demonstrated strong interpersonal and problem-solving skills through past collaboration with high-profile clients, including DRDO scientists and defense officers in separate engagements. Passionate about solving complex challenges and contributing to dynamic, tech-driven teams.";
 
-      const speakBtn = document.getElementById('speakId');
-      const skipBtn = document.getElementById('skipId');
-
-      // Reset UI
+      document.getElementById('speakId').disabled = true;
+      document.getElementById('skipId').disabled = false;;
       speechDiv.textContent = '';
-      speakBtn.disabled = true;
-      skipBtn.disabled = false;
 
       // Prepare and start speech
       const utter = new SpeechSynthesisUtterance(text);
@@ -442,7 +438,7 @@
       startLipSync();
 
       window.speechSynthesis.speak(utter);
-
+      document.getElementById("askQuestions").disabled = true;
       utter.onend = () => endSpeech();
     }
 
@@ -458,6 +454,7 @@
       resetHands();
       document.getElementById('speakId').disabled = false;
       document.getElementById('skipId').disabled = true;
+      document.getElementById("askQuestions").disabled = false;
 
       // Clear and instantly show full text if skipped
       if (skipped) {
@@ -631,7 +628,7 @@
       }
 
       // Dynamic fallback response
-      return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience? Or check out my <a href='https://govindpal5101999.github.io/portfolio/' target='_blank'>portfolio</a> for more!`;
+      return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience? Or check out my portfolio at 'https://govindpal5101999.github.io/portfolio/' for more!`;
     }
 
     // === MAKE THE AVATAR SPEAK ===
@@ -642,7 +639,9 @@
       utter.rate = 0.9;
       utter.volume = 1;
 
+      document.getElementById("speakId").disabled = true;
       speakActive = true;
+
       foldHands(model);
       startLipSync();
 
@@ -652,6 +651,7 @@
         stopLipSync();
         resetHands();
         speakActive = false;
+         document.getElementById("speakId").disabled = false;
       };
     }
 
