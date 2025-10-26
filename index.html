@@ -57,10 +57,9 @@
     /* Fake mouth overlay */
     .mouth {
       position: absolute;
-      left: 250px;
-      top: 76px;
-      /* adjust as needed */
-      width: 10px;
+      left: 251px;
+      top: 74px;
+      width: 12px;
       height: 6px;
       background-color: #000;
       border-radius: 50%;
@@ -173,38 +172,76 @@
     let lipInterval, speakActive = false;
     const mouth = document.getElementById('mouth');
     const speechDiv = document.getElementById('speech');
+    let particleMesh, particlePositions, particleSpeeds;
 
     init();
-
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x222222);
 
       camera = new THREE.PerspectiveCamera(36, 500 / 500, 0.1, 100);
       camera.position.set(0, 1.5, 3);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(500, 500);
+      renderer.outputEncoding = THREE.sRGBEncoding;
       document.getElementById('avatarCanvas').appendChild(renderer.domElement);
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 1, 0);
-      controls.enableZoom = false;      // disables scroll wheel zoom
-      controls.enableRotate = false;    // disables mouse drag rotation
+      controls.enableZoom = false;
+      controls.enableRotate = false;
       controls.enablePan = false;
 
-      const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
-      light.position.set(0, 20, 0);
-      scene.add(light);
+      // 💡 Balanced, clean lighting setup
+      const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
+      dirLight.position.set(2, 4, 3);
+      scene.add(dirLight);
 
+      const fillLight = new THREE.PointLight(0x99ccff, 1.0);
+      fillLight.position.set(-2, 2, 2);
+      scene.add(fillLight);
+
+      const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambient);
+
+      addSkyParticles();
       clock = new THREE.Clock();
-
       animate();
     }
 
+    function addSkyParticles() {
+      const particlesCount = 8000;
+      const geometry = new THREE.BufferGeometry();
+      particlePositions = new Float32Array(particlesCount * 3);
+      particleSpeeds = [];
+
+      for (let i = 0; i < particlesCount; i++) {
+        const i3 = i * 3;
+        particlePositions[i3 + 0] = (Math.random() - 0.5) * 20; // x
+        particlePositions[i3 + 1] = (Math.random() - 0.5) * 10; // y
+        particlePositions[i3 + 2] = -(Math.random() * 10 + 3); // z
+        particleSpeeds[i] = 0.001 + Math.random() * 0.002; // individual drift speed
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+
+      const material = new THREE.PointsMaterial({
+        color: 0x00ffff,
+        size: 0.06,
+        transparent: true,
+        opacity: 0.7,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      particleMesh = new THREE.Points(geometry, material);
+      scene.add(particleMesh);
+    }
+
+
     function loadAndPoseModel() {
       const loader = new THREE.GLTFLoader();
-      loader.load("https://models.readyplayer.me/68eb2ac90f9f862ffe3b15e1.glb", function (gltf) {
+      loader.load("https://models.readyplayer.me/68fe466e53c7c379ec6f3365.glb", function (gltf) {
         if (model) scene.remove(model);
         model = gltf.scene;
         scene.add(model);
@@ -272,27 +309,27 @@
       }, 80);
 
       // === STEP 2: Natural Talking Gestures ===
-function startSpeakingGestures() {
-    let t = 0;
-    handAnimInterval = setInterval(() => {
-        t += 0.5;
+      function startSpeakingGestures() {
+        let t = 0;
+        handAnimInterval = setInterval(() => {
+          t += 0.5;
 
-        // === Left Hand Wave ===
-        leftArm.rotation.x = 0.8;
-        leftArm.rotation.z = 0.4;
-        leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3;
-        leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2;
+          // === Left Hand Wave ===
+          leftArm.rotation.x = 0.8;
+          leftArm.rotation.z = 0.4;
+          leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3;
+          leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2;
 
-        // === Right Hand Wave (same as left hand) ===
+          // === Right Hand Wave (same as left hand) ===
           rightHand.rotation.x = -0.1;
-          rightArm.rotation.x = 1.2; 
+          rightArm.rotation.x = 1.2;
           rightArm.rotation.z = 0.1;
-          rightForeArm.rotation.x = 0.2; 
+          rightForeArm.rotation.x = 0.2;
           // rightForeArm.rotation.z = -0.1;
-           rightForeArm.rotation.z = -2 - Math.sin(t * 0.4) * 0.3;
+          rightForeArm.rotation.z = -2 - Math.sin(t * 0.4) * 0.3;
 
-    }, 30);
-}
+        }, 30);
+      }
 
     }
 
@@ -444,6 +481,22 @@ function startSpeakingGestures() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
       if (mixer) mixer.update(delta);
+      // Animate particles gently drifting
+      if (particleMesh) {
+        const positions = particleMesh.geometry.attributes.position.array;
+        const time = performance.now() * 0.001;
+
+        for (let i = 0; i < positions.length; i += 3) {
+          const speed = particleSpeeds[i / 3];
+
+          positions[i + 0] += Math.sin(time * speed + i) * 0.002; // X movement
+          positions[i + 1] += Math.cos(time * speed + i * 0.3) * 0.002; // Y movement
+          positions[i + 2] += Math.sin(time * speed + i * 0.5) * 0.002; // Z movement
+        }
+
+        particleMesh.geometry.attributes.position.needsUpdate = true;
+        particleMesh.rotation.y += 0.0005;
+      }
       renderer.render(scene, camera);
       controls.update();
     }
