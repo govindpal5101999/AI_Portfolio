@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Avatar Chatbot</title>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #0a0e1f 0%, #090c18 100%);
+      font-family: monospace;
+      overflow: hidden;
+      color: #00ff99;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      width: 90%;
+      height: 600px;
+      max-width: 1200px;
+      border-radius: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 40px rgba(0, 255, 153, 0.2);
+      backdrop-filter: blur(5px);
+      padding: 20px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 500px;
+      height: 500px;
+      border-radius: 15px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 30px rgba(0, 255, 153, 0.2);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Fake mouth overlay */
+    .mouth {
+      position: absolute;
+      left: 250px;
+      top: 76px;
+      /* adjust as needed */
+      width: 10px;
+      height: 6px;
+      background-color: #000;
+      border-radius: 50%;
+      transform: translateX(-50%) scaleY(0.1);
+      opacity: 0.9;
+      pointer-events: none;
+      transition: transform 0.05s linear;
+    }
+
+    .speech-container {
+      width: 500px;
+      height: 500px;
+      color: #00ff99;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 18px;
+      overflow-y: auto;
+      box-shadow: 0 0 25px rgba(0, 255, 153, 0.25);
+    }
+
+    #ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    input {
+      padding: 6px;
+      width: 300px;
+      margin-bottom: 8px;
+    }
+
+    button {
+      padding: 8px 16px;
+      margin-top: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #00ff99;
+      border: none;
+      border-radius: 5px;
+      color: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="avatar-wrapper">
+      <div id="avatarCanvas"></div>
+      <div id="mouth" class="mouth"></div>
+    </div>
+    <button id="speakId" onclick=" speakText()">Speak</button>
+    <div class="speech-container" id="speech"></div>
+
+  </div>
+
+  <script>
+    // Three.js setup
+    let scene, camera, renderer, controls, model, mixer, clock;
+    let lipInterval;
+    const mouth = document.getElementById('mouth');
+    const speechDiv = document.getElementById('speech');
+
+    init();
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x222222);
+
+      camera = new THREE.PerspectiveCamera(36, 500 / 500, 0.1, 100);
+      camera.position.set(0, 1.5, 3);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(500, 500);
+      document.getElementById('avatarCanvas').appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 1, 0);
+
+      const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+      light.position.set(0, 20, 0);
+      scene.add(light);
+
+      clock = new THREE.Clock();
+
+      animate();
+    }
+
+    function loadAndPoseModel() {
+      const loader = new THREE.GLTFLoader();
+      loader.load("https://models.readyplayer.me/68eb2ac90f9f862ffe3b15e1.glb", function (gltf) {
+        if (model) scene.remove(model);
+        model = gltf.scene;
+        scene.add(model);
+        model.position.set(0, 0, 0);
+        model.scale.set(1, 1, 1);
+
+        if (gltf.animations && gltf.animations.length) {
+          mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach(clip => mixer.clipAction(clip).play());
+        }
+
+        resetHands();
+      }, undefined, function (err) {
+        console.error(err);
+        alert('Error loading model');
+      });
+    }
+
+    loadAndPoseModel();
+
+    let handAnimAngle = 0; // for smooth swinging
+    let handAnimInterval;
+
+    function foldHands(model) {
+      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
+      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
+      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
+      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
+      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
+      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
+
+      if (!rightArm || !leftArm || !rightForeArm || !leftForeArm || !rightHand || !leftHand) {
+        console.warn("Some hand bones not found — check model structure");
+        return;
+      }
+
+      clearInterval(handAnimInterval);
+
+      // === STEP 1: Short Hello Wave ===
+      let frame = 0;
+      const helloInterval = setInterval(() => {
+        frame++;
+
+        // --- Raise upper arm slightly outward and forward ---
+        rightArm.rotation.x = 0.8;   // bring forward
+        rightArm.rotation.z = -0.4;  // move out from torso
+
+        // --- Bend forearm so hand comes up near face ---
+        rightForeArm.rotation.x = -1.4; // bend elbow up
+        rightForeArm.rotation.z = -1.2; // slight twist outward
+
+        // --- Wave the hand side-to-side (hello motion) ---
+        rightHand.rotation.x = -0.2;
+        rightHand.rotation.y = Math.sin(frame * 0.4) * 0.6; // waving side-to-side
+        rightHand.rotation.z = Math.sin(frame * 0.4) * 0.3; // small tilt
+
+        // Keep left arm relaxed
+        leftArm.rotation.x = 1.2;
+        leftArm.rotation.z = 0.3;
+
+        if (frame > 40) { // after ~1.5 seconds
+          clearInterval(helloInterval);
+          startSpeakingGestures(); // switch to talk motion
+        }
+      }, 30);
+
+      // === STEP 2: Natural Talking Gestures ===
+      function startSpeakingGestures() {
+        let t = 0;
+        handAnimInterval = setInterval(() => {
+          t += 0.5;
+          rightArm.rotation.x = 0.8;
+          rightArm.rotation.z = -0.4; // mirror outward direction
+          rightForeArm.rotation.z = -2 + Math.sin(t * 0.4) * 0.3; // opposite side wave
+          rightHand.rotation.x = -0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2; // phase shifted like left hand
+
+
+          // === Left Hand Wave (mirrored motion) ===
+          leftArm.rotation.x = 0.8;
+          leftArm.rotation.z = 0.4; // mirror outward direction
+          leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3; // opposite side wave
+          leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2; // phase shifted for variation
+
+        }, 30);
+      }
+    }
+
+
+
+
+
+    // Call this to reset hands to default folded position when speech ends
+    function resetHands() {
+      clearInterval(handAnimInterval);
+      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
+      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
+      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
+      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
+      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
+      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
+
+      if (rightArm && leftArm && rightForeArm && leftForeArm && rightHand && leftHand) {
+        rightArm.rotation.x = 1.2; rightArm.rotation.z = 0.1;
+        leftArm.rotation.x = 1.2; leftArm.rotation.z = -0.1;
+
+        rightForeArm.rotation.x = 0.2; rightForeArm.rotation.z = -0.1;
+        leftForeArm.rotation.x = 0.1; leftForeArm.rotation.z = 0.1;
+
+        rightHand.rotation.x = -0.1;
+        leftHand.rotation.x = 0.1;
+      }
+    }
+
+
+
+    // Call this to reset hands to default folded position when speech ends
+    function resetHands() {
+      clearInterval(handAnimInterval);
+      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
+      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
+      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
+      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
+      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
+      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
+
+      if (rightArm && leftArm && rightForeArm && leftForeArm && rightHand && leftHand) {
+        rightArm.rotation.x = 1.2; rightArm.rotation.z = 0.1;
+        leftArm.rotation.x = 1.2; leftArm.rotation.z = -0.1;
+
+        rightForeArm.rotation.x = 0.2; rightForeArm.rotation.z = -0.1;
+        leftForeArm.rotation.x = 0.1; leftForeArm.rotation.z = 0.1;
+
+        rightHand.rotation.x = -0.1;
+        leftHand.rotation.x = 0.1;
+      }
+    }
+
+    function speakText() {
+      const text = "Hello There...! My name is Govind Pal experienced and results-driven Software Engineer with over 4 years in full stack development, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong database knowledge (PostgreSQL, MySQL, MongoDB). Ex-Trinitian, delivering GIS-based solutions using tools like Leaflet, GeoServer, and NCWMS Server. Proficient in deploying applications via Tomcat for seamless local access. Demonstrated strong interpersonal and problem-solving skills through past collaboration with high-profile clients, including DRDO scientists and defense officers in separate engagements. Passionate about solving complex challenges and contributing to dynamic, tech-driven teams";
+      // const text = "hello";
+      speechDiv.textContent = '';
+      typeText(text);
+
+      const utter = new SpeechSynthesisUtterance(text);
+
+      utter.pitch = 0.6;  // lower pitch = deeper voice
+      utter.rate = 0.9;   // slightly slower
+      utter.volume = 1;
+      let speakId = document.getElementById('speakId');
+
+      utter.onstart = () => {
+        speakId.disabled = true;
+        speakId.style.background = "grey";
+        foldHands(model);
+        startLipSync();
+      }
+      utter.onend = () => {
+        speakId.disabled = false;
+        speakId.style.backgroundColor = "#00ff99";
+        resetHands();
+        stopLipSync();
+        const githubLink = document.createElement('a');
+        githubLink.href = "https://govindpal5101999.github.io/portfolio/"; // 🔗 replace with your GitHub
+        githubLink.textContent = "🔗 Visit My Porfolio";
+        githubLink.target = "_blank"; // open in new tab
+        githubLink.style.display = "block";
+        githubLink.style.marginTop = "15px";
+        githubLink.style.color = "#00ff99";
+        githubLink.style.textDecoration = "underline";
+        githubLink.style.fontWeight = "bold";
+
+        // Append link to speech container
+        speechDiv.appendChild(githubLink);
+      }
+
+
+      window.speechSynthesis.speak(utter);
+
+    }
+
+    function stopSpeech() {
+      window.speechSynthesis.cancel();  // Stops any speech that's currently happening
+    }
+
+    stopSpeech();
+
+    function startLipSync() {
+      clearInterval(lipInterval);
+      lipInterval = setInterval(() => {
+        const open = Math.random() * 0.8 + 0.2;
+        mouth.style.transform = `translateX(-50%) scaleY(${open})`;
+      }, 0);
+    }
+
+    function stopLipSync() {
+      clearInterval(lipInterval);
+      mouth.style.transform = 'translateX(-50%) scaleY(0.1)';
+    }
+
+    function typeText(text) {
+      let i = 0;
+      const interval = setInterval(() => {
+        speechDiv.textContent += text.charAt(i);
+        i++;
+        if (i >= text.length) clearInterval(interval);
+      }, 70);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      if (mixer) mixer.update(delta);
+      renderer.render(scene, camera);
+      controls.update();
+    }
+  </script>
+</body>
+
+</html>
