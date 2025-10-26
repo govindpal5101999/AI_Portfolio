@@ -104,6 +104,52 @@
       border-radius: 5px;
       color: #000;
     }
+
+    button:hover {
+      background-color: #00ffaa;
+      transform: scale(1.05);
+    }
+
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button:disabled {
+      background-color: #444;
+      /* darker/greyed out */
+      color: #888;
+      /* lighter text */
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    @keyframes blink {
+
+      0%,
+      50%,
+      100% {
+        opacity: 1;
+        color: #00ff99;
+        /* normal color */
+      }
+
+      25%,
+      75% {
+        opacity: 0.3;
+        /* faded */
+        color: #ffff00;
+        /* highlighted color */
+      }
+    }
+
+    .blinking {
+      animation: blink 1s infinite;
+      font-weight: bold;
+      text-decoration: underline;
+    }
   </style>
 </head>
 
@@ -113,7 +159,10 @@
       <div id="avatarCanvas"></div>
       <div id="mouth" class="mouth"></div>
     </div>
-    <button id="speakId" onclick=" speakText()">Speak</button>
+    <div class="button-group">
+      <button id="speakId" onclick="speakText()">Speak</button>
+      <button id="skipId" onclick="skipSpeech()" disabled>Skip</button>
+    </div>
     <div class="speech-container" id="speech"></div>
 
   </div>
@@ -121,7 +170,7 @@
   <script>
     // Three.js setup
     let scene, camera, renderer, controls, model, mixer, clock;
-    let lipInterval;
+    let lipInterval, speakActive = false;
     const mouth = document.getElementById('mouth');
     const speechDiv = document.getElementById('speech');
 
@@ -140,6 +189,9 @@
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 1, 0);
+      controls.enableZoom = false;      // disables scroll wheel zoom
+      controls.enableRotate = false;    // disables mouse drag rotation
+      controls.enablePan = false;
 
       const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
       light.position.set(0, 20, 0);
@@ -217,32 +269,32 @@
           clearInterval(helloInterval);
           startSpeakingGestures(); // switch to talk motion
         }
-      }, 30);
+      }, 80);
 
       // === STEP 2: Natural Talking Gestures ===
-      function startSpeakingGestures() {
-        let t = 0;
-        handAnimInterval = setInterval(() => {
-          t += 0.5;
-          rightArm.rotation.x = 0.8;
-          rightArm.rotation.z = -0.4; // mirror outward direction
-          rightForeArm.rotation.z = -2 + Math.sin(t * 0.4) * 0.3; // opposite side wave
-          rightHand.rotation.x = -0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2; // phase shifted like left hand
+function startSpeakingGestures() {
+    let t = 0;
+    handAnimInterval = setInterval(() => {
+        t += 0.5;
 
+        // === Left Hand Wave ===
+        leftArm.rotation.x = 0.8;
+        leftArm.rotation.z = 0.4;
+        leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3;
+        leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2;
 
-          // === Left Hand Wave (mirrored motion) ===
-          leftArm.rotation.x = 0.8;
-          leftArm.rotation.z = 0.4; // mirror outward direction
-          leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3; // opposite side wave
-          leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2; // phase shifted for variation
+        // === Right Hand Wave (same as left hand) ===
+          rightHand.rotation.x = -0.1;
+          rightArm.rotation.x = 1.2; 
+          rightArm.rotation.z = 0.1;
+          rightForeArm.rotation.x = 0.2; 
+          // rightForeArm.rotation.z = -0.1;
+           rightForeArm.rotation.z = -2 - Math.sin(t * 0.4) * 0.3;
 
-        }, 30);
-      }
+    }, 30);
+}
+
     }
-
-
-
-
 
     // Call this to reset hands to default folded position when speech ends
     function resetHands() {
@@ -291,46 +343,69 @@
     }
 
     function speakText() {
-      const text = "Hello There...! My name is Govind Pal experienced and results-driven Software Engineer with over 4 years in full stack development, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong database knowledge (PostgreSQL, MySQL, MongoDB). Ex-Trinitian, delivering GIS-based solutions using tools like Leaflet, GeoServer, and NCWMS Server. Proficient in deploying applications via Tomcat for seamless local access. Demonstrated strong interpersonal and problem-solving skills through past collaboration with high-profile clients, including DRDO scientists and defense officers in separate engagements. Passionate about solving complex challenges and contributing to dynamic, tech-driven teams";
-      // const text = "hello";
+      const text = "Hello There...! My name is Govind Pal experienced and results-driven Software Engineer with over 4 years in full stack development, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong database knowledge (PostgreSQL, MySQL, MongoDB). Ex-Trinitian, delivering GIS-based solutions using tools like Leaflet, GeoServer, and NCWMS Server. Proficient in deploying applications via Tomcat for seamless local access. Demonstrated strong interpersonal and problem-solving skills through past collaboration with high-profile clients, including DRDO scientists and defense officers in separate engagements. Passionate about solving complex challenges and contributing to dynamic, tech-driven teams.";
+
+      const speakBtn = document.getElementById('speakId');
+      const skipBtn = document.getElementById('skipId');
+
+      // Reset UI
       speechDiv.textContent = '';
-      typeText(text);
+      speakBtn.disabled = true;
+      skipBtn.disabled = false;
 
+      // Prepare and start speech
       const utter = new SpeechSynthesisUtterance(text);
-
-      utter.pitch = 0.6;  // lower pitch = deeper voice
-      utter.rate = 0.9;   // slightly slower
+      utter.pitch = 0.6;
+      utter.rate = 0.9;
       utter.volume = 1;
-      let speakId = document.getElementById('speakId');
 
-      utter.onstart = () => {
-        speakId.disabled = true;
-        speakId.style.background = "grey";
-        foldHands(model);
-        startLipSync();
-      }
-      utter.onend = () => {
-        speakId.disabled = false;
-        speakId.style.backgroundColor = "#00ff99";
-        resetHands();
-        stopLipSync();
-        const githubLink = document.createElement('a');
-        githubLink.href = "https://govindpal5101999.github.io/portfolio/"; // 🔗 replace with your GitHub
-        githubLink.textContent = "🔗 Visit My Porfolio";
-        githubLink.target = "_blank"; // open in new tab
-        githubLink.style.display = "block";
-        githubLink.style.marginTop = "15px";
-        githubLink.style.color = "#00ff99";
-        githubLink.style.textDecoration = "underline";
-        githubLink.style.fontWeight = "bold";
-
-        // Append link to speech container
-        speechDiv.appendChild(githubLink);
-      }
-
+      speakActive = true;
+      typeText(text);
+      foldHands(model);
+      startLipSync();
 
       window.speechSynthesis.speak(utter);
 
+      utter.onend = () => endSpeech();
+    }
+
+    function skipSpeech() {
+      if (!speakActive) return;
+      window.speechSynthesis.cancel();
+      endSpeech(true);
+    }
+
+    function endSpeech(skipped = false) {
+      speakActive = false;
+      stopLipSync();
+      resetHands();
+      document.getElementById('speakId').disabled = false;
+      document.getElementById('skipId').disabled = true;
+
+      // Clear and instantly show full text if skipped
+      if (skipped) {
+        speechDiv.textContent =
+          "Hello There...! My name is Govind Pal experienced and results-driven Software Engineer with over 4 years in full stack development, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong database knowledge (PostgreSQL, MySQL, MongoDB). Ex-Trinitian, delivering GIS-based solutions using tools like Leaflet, GeoServer, and NCWMS Server. Proficient in deploying applications via Tomcat for seamless local access. Demonstrated strong interpersonal and problem-solving skills through past collaboration with high-profile clients, including DRDO scientists and defense officers in separate engagements. Passionate about solving complex challenges and contributing to dynamic, tech-driven teams.";
+      }
+
+      const portfolioLink = document.createElement('a');
+      portfolioLink.href = "https://govindpal5101999.github.io/portfolio/";
+      portfolioLink.textContent = "🔗 Visit My Portfolio";
+      // githubLink.target = "_blank";
+      portfolioLink.style.display = "block";
+      portfolioLink.style.marginTop = "15px";
+      portfolioLink.style.color = "#00ff99";
+      portfolioLink.style.textDecoration = "underline";
+      portfolioLink.style.fontWeight = "bold";
+
+      portfolioLink.classList.add('blinking'); // Add blinking effect
+
+      // Remove blinking when clicked
+      portfolioLink.addEventListener('click', () => {
+        portfolioLink.classList.remove('blinking');
+      });
+
+      speechDiv.appendChild(portfolioLink);
     }
 
     function stopSpeech() {
@@ -355,6 +430,10 @@
     function typeText(text) {
       let i = 0;
       const interval = setInterval(() => {
+        if (!speakActive) {
+          clearInterval(interval);
+          return;
+        }
         speechDiv.textContent += text.charAt(i);
         i++;
         if (i >= text.length) clearInterval(interval);
