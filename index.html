@@ -545,6 +545,7 @@
       const question = input.value.trim();
       if (!question) return;
 
+      speechDiv.innerHTML = "";
       // Display user message
       const p = document.createElement("p");
       p.textContent = "👤 You: " + question;
@@ -572,63 +573,90 @@
       speakResponse(answer);
     }
 
-    // === LOCAL RESPONSES (you can expand this easily) ===
     function getLocalResponse(q) {
-      // Convert query to lowercase for case-insensitive matching
       const query = q.toLowerCase().trim();
 
-      // Helper function to check if query contains any of the keywords
-      const containsAny = (keywords) => keywords.some(keyword => query.includes(keyword));
-
-      // Response data based on your information
+      // Response data
       const responses = {
-        name: "My name is Govind Pal, a passionate full-stack developer with a knack for building innovative solutions.",
-        about: "I'm Govind Pal, a software engineer with over 4 years of experience at Tech Mahindra, specializing in full-stack development and GIS-based solutions. I love tackling complex challenges and collaborating on cutting-edge projects!",
-        skills: "I'm skilled in Java, Spring Boot, Angular, JavaScript, and databases like PostgreSQL and MongoDB. I also have experience with GIS technologies and building scalable web applications.",
-        portfolio: "Check out my github at 'https://github.com/govindpal5101999' to see my projects and skills in action!",
-        experience: "I have 4.4 years of experience as a full-stack developer at Tech Mahindra, working on GIS-based solutions and collaborating with DRDO scientists and defense officers on innovative, tech-driven projects.",
-        greeting: "Hey there! I'm Govind Pal, ready to answer your questions. What's on your mind?",
+        greeting: {
+          keywords: ['hello', 'hi', 'hey', 'greetings'],
+          answer: "Hey there! I'm Govind Pal, ready to answer your questions. What's on your mind?"
+        },
+        name: {
+          keywords: ['your name', 'who are you', 'introduce yourself', 'name'],
+          answer: "My name is Govind Pal, a passionate full-stack developer with a knack for building innovative solutions."
+        },
+        about: {
+          keywords: ['about yourself', 'tell me about you', 'who is govind', 'what do you do', 'describe yourself'],
+          answer: "I'm Govind Pal, a software engineer with over 4 years of experience at Tech Mahindra, specializing in full-stack development and GIS-based solutions. I love tackling complex challenges and collaborating on cutting-edge projects!"
+        },
+        skills: {
+          keywords: ['skills', 'technologies', 'expertise', 'what can you do', 'tech stack', 'programming'],
+          answer: "I'm skilled in Java, Spring Boot, Angular, JavaScript, PostgreSQL, and MongoDB. I also work with GIS technologies and build scalable web applications."
+        },
+        portfolio: {
+          keywords: ['portfolio', 'projects', 'github', 'work samples', 'your work', 'project links', 'resume'],
+          answer: "Here’s a direct link to my portfolio and GitHub where you can explore my projects!"
+        },
+        experience: {
+          keywords: ['experience', 'background', 'work history', 'career', 'years of experience', 'professional journey'],
+          answer: "I have 4.5 years of experience as a full-stack developer, currently working at Tech Mahindra, worked on GIS-based solutions and collaborating with DRDO scientists and defense officers on innovative, tech-driven projects while working with DRDO as a development partner."
+        },
+        gis: {
+          keywords: ['gis', 'geographic', 'mapping', 'spatial', 'maps'],
+          answer: "I specialize in GIS-based solutions, leveraging my skills in Java and Angular to build mapping and spatial analysis tools for real-world applications with GIS libraries like leaflet, openlayers, ESRI etc."
+        },
+        drdo: {
+          keywords: ['drdo', 'defense', 'collaborate', 'military', 'research organization'],
+          answer: "I've had the privilege of collaborating with DRDO scientists and defense officers on tech-driven projects, focusing on GIS and full-stack solutions."
+        },
+        companies: {
+          keywords: ['recent company', 'company names', 'current company', 'total companies', 'name of companies you worked'],
+          answer: "I’ve worked across four organizations, starting my career at DRDO (Ministry of Defence) as a project(contract) engineer, then advancing through MicroGenesis TechSoft Pvt. Ltd. and Trinity Mobility, and currently serving as a Full Stack Developer at Tech Mahindra."
+        },
       };
 
-      // Dynamic response logic
-      if (containsAny(['hello', 'hi', 'hey', 'greetings'])) {
-        return responses.greeting;
-      }
-
-      if (containsAny(['your name', 'who are you', 'introduce yourself'])) {
-        // Combine name and about for a richer response
-        return `${responses.name} ${responses.about}`;
-      }
-
-      if (containsAny(['about yourself', 'tell me about you', 'who is govind', 'what do you do'])) {
-        return `${responses.about} I've worked on exciting projects like ${responses.experience.split(' ')[0].toLowerCase()}...`;
-      }
-
-      if (containsAny(['skills', 'technologies', 'expertise', 'what can you do'])) {
-        return `${responses.skills} Want to see them in action? Visit my ${responses.portfolio}`;
-      }
-
-      if (containsAny(['portfolio', 'projects', 'work samples', 'your work'])) {
-        return responses.portfolio;
-      }
-
-      if (containsAny(['experience', 'background', 'work history', 'career'])) {
-        if (containsAny(['years', 'how long'])) {
-          return responses.experience;
+      // Calculate best match
+      let bestMatch = { score: 0, key: null };
+      for (const key in responses) {
+        const { keywords } = responses[key];
+        let score = 0;
+        for (const keyword of keywords) {
+          if (query.includes(keyword)) score += keyword.split(' ').length;
         }
-        return `${responses.experience} My work includes collaborating on high-impact projects with DRDO and defense teams.`;
+        if (score > bestMatch.score) {
+          bestMatch = { score, key };
+        }
       }
 
-      if (containsAny(['gis', 'geographic', 'mapping'])) {
-        return `I specialize in GIS-based solutions, leveraging my skills in ${responses.skills.split(' ')[2]} to build innovative mapping and spatial analysis tools at Tech Mahindra.`;
+      // Fallback
+      if (bestMatch.score === 0) {
+        return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience?`;
       }
 
-      if (containsAny(['drdo', 'defense', 'collaborate'])) {
-        return `I've had the privilege of collaborating with DRDO scientists and defense officers on tech-driven projects, focusing on ${responses.experience.split(' ')[6].toLowerCase()} solutions.`;
+      const response = responses[bestMatch.key].answer;
+
+      if (bestMatch.key === 'portfolio') {
+        const portfolioLink = document.createElement('a');
+        portfolioLink.href = "https://govindpal5101999.github.io/portfolio/";
+        portfolioLink.textContent = "🔗 Visit My Portfolio";
+        portfolioLink.target = "_blank";
+        portfolioLink.style.display = "block";
+        portfolioLink.style.marginTop = "15px";
+        portfolioLink.style.color = "#00ff99";
+        portfolioLink.style.textDecoration = "underline";
+        portfolioLink.style.fontWeight = "bold";
+        portfolioLink.classList.add('blinking');
+
+        // Remove blinking when clicked
+        portfolioLink.addEventListener('click', () => {
+          portfolioLink.classList.remove('blinking');
+        });
+
+        speechDiv.appendChild(portfolioLink);
       }
 
-      // Dynamic fallback response
-      return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience? Or check out my portfolio at 'https://govindpal5101999.github.io/portfolio/' for more!`;
+      return response;
     }
 
     // === MAKE THE AVATAR SPEAK ===
@@ -651,7 +679,7 @@
         stopLipSync();
         resetHands();
         speakActive = false;
-         document.getElementById("speakId").disabled = false;
+        document.getElementById("speakId").disabled = false;
       };
     }
 
