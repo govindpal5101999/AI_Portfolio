@@ -133,7 +133,6 @@
       100% {
         opacity: 1;
         color: #00ff99;
-        /* normal color */
       }
 
       25%,
@@ -141,7 +140,6 @@
         opacity: 0.3;
         /* faded */
         color: #ffff00;
-        /* highlighted color */
       }
     }
 
@@ -233,7 +231,7 @@
       controls.enableRotate = false;
       controls.enablePan = false;
 
-      // 💡 Balanced, clean lighting setup
+      // Balanced, clean lighting setup
       const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
       dirLight.position.set(2, 4, 3);
       scene.add(dirLight);
@@ -630,7 +628,7 @@
         }
       }
 
-      // Fallback
+      // Default
       if (bestMatch.score === 0) {
         return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience?`;
       }

@@ -1,4 +1,4 @@
-/* ✅ Responsive scaling for smaller screens */
+/* Responsive scaling for smaller screens */
 @media (max-width: 768px) {
   body {
     flex-direction: column;
@@ -45,7 +45,7 @@
   }
 }
 
-/* ✅ Extra-small devices (like Redmi 6A - width < 480px) */
+/* Extra-small devices (like Redmi 6A - width < 480px) */
 @media (max-width: 480px) {
   .avatar-wrapper {
     width: 100%;
@@ -97,7 +97,6 @@
   }
 }
 
-/* Mobile devices (e.g. Redmi 6A, iPhone SE) */
 @media (max-width: 480px) {
   #chatBox {
     flex-direction: column;
