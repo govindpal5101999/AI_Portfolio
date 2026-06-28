@@ -10,7 +10,9 @@
   <!-- Link External Layout Stylesheets -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="responsive.css">
-  <!-- Three.js -->
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/talkify-tts@4.0.0/dist/styles/classic-control-center/colors.min.css">
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
@@ -150,7 +152,7 @@
       const loader = new THREE.GLTFLoader();
 
       // Clean, relative paths are safer, but your 127.0.0.1 absolute path works too!
-      loader.load("./model.glb", function (gltf) {
+      loader.load("./gp_model.glb", function (gltf) {
 
         // Fix 1: Safe removal of the old model
         if (model) {
@@ -268,51 +270,56 @@
       }
     }
 
-
-
-    // Call this to reset hands to default folded position when speech ends
-    function resetHands() {
-      clearInterval(handAnimInterval);
-      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
-      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
-      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
-      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
-      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
-      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
-
-      if (rightArm && leftArm && rightForeArm && leftForeArm && rightHand && leftHand) {
-        rightArm.rotation.x = 1.2; rightArm.rotation.z = 0.1;
-        leftArm.rotation.x = 1.2; leftArm.rotation.z = -0.1;
-
-        rightForeArm.rotation.x = 0.2; rightForeArm.rotation.z = -0.1;
-        leftForeArm.rotation.x = 0.1; leftForeArm.rotation.z = 0.1;
-
-        rightHand.rotation.x = -0.1;
-        leftHand.rotation.x = 0.1;
-      }
-    }
+    let talkifyPlayer = null;
 
     function speakText() {
-      const text = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
+      const text = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 5+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
 
-      document.getElementById('speakId').disabled = true;
-      document.getElementById('skipId').disabled = false;;
-      speechDiv.textContent = '';
+      const speakBtn = document.getElementById('speakId');
+      const skipBtn = document.getElementById('skipId');
+      const askBtn = document.getElementById('askQuestions');
 
-      // Prepare and start speech
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.pitch = 0.6;
-      utter.rate = 0.9;
-      utter.volume = 1;
+      if (speakBtn) speakBtn.disabled = true;
+      if (skipBtn) skipBtn.disabled = false;
+      if (askBtn) askBtn.disabled = true;
+      if (typeof speechDiv !== 'undefined' && speechDiv) speechDiv.textContent = '';
 
       speakActive = true;
       typeText(text);
       foldHands(model);
       startLipSync();
 
-      window.speechSynthesis.speak(utter);
-      document.getElementById("askQuestions").disabled = true;
-      utter.onend = () => endSpeech();
+      try {
+        // 1. FIX: Initialize Talkify explicitly using browser-native local engines (No API keys or logins!)
+        talkifyPlayer = new talkify.Html5Player();
+
+        // 2. OPTIONAL CONFIG: Find a clean local male voice if available on the device
+        const localVoices = window.speechSynthesis.getVoices();
+        let selectedVoice = localVoices.find(v =>
+          v.name.includes('Google UK English Male') ||
+          v.name.includes('David') ||
+          v.name.includes('Male')
+        );
+
+        if (selectedVoice) {
+          // Use forceVoice with the native voice object for HTML5 Player mapping
+          talkifyPlayer.forceVoice(selectedVoice);
+        }
+
+        // 3. Play the text directly
+        talkifyPlayer.playText(text);
+
+        // 4. FIX: Use Talkify's proper event listener mapping framework
+        talkifyPlayer.subscribeTo({
+          onItemFinished: function () {
+            endSpeech();
+          }
+        });
+
+      } catch (error) {
+        console.error("Frictionless Voice Engine failed, falling back safely:", error);
+        endSpeech();
+      }
     }
 
     function skipSpeech() {
@@ -346,7 +353,7 @@
       if (askBtn) askBtn.disabled = false;
 
       if (skipped) {
-        speechDiv.textContent = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
+        speechDiv.textContent = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 5+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
       }
       appendPortfolioAnchor();
     }
@@ -464,7 +471,7 @@
         about: { keywords: ['about yourself', 'tell me about you', 'who is govind', 'what do you do', 'describe yourself'], answer: "I'm Govind Pal, a software engineer with over 4 years of experience at Tech Mahindra, specializing in full-stack development and GIS-based solutions." },
         skills: { keywords: ['skills', 'technologies', 'expertise', 'what can you do', 'tech stack', 'programming'], answer: "I'm skilled in Java, Spring Boot, Angular, JavaScript, PostgreSQL, and MongoDB. I also work with GIS mapping libraries." },
         portfolio: { keywords: ['portfolio', 'projects', 'github', 'work samples', 'your work', 'project links', 'resume'], answer: "Here’s a direct link to my portfolio where you can explore my projects live!" },
-        experience: { keywords: ['experience', 'background', 'work history', 'career', 'years of experience', 'professional journey'], answer: "I have 4.5 years of experience as a full-stack developer, currently working at Tech Mahindra. Previously, I built GIS solutions and collaborated with DRDO scientists." },
+        experience: { keywords: ['experience', 'background', 'work history', 'career', 'years of experience', 'professional journey'], answer: "I have 5+ years of experience as a full-stack developer, currently working at Tech Mahindra. Previously, I built GIS solutions and collaborated with DRDO scientists." },
         gis: { keywords: ['gis', 'geographic', 'mapping', 'spatial', 'maps'], answer: "I specialize in GIS-based solutions, leveraging my skills in Java and Angular to build mapping tools using libraries like Leaflet, OpenLayers, and Cesium." },
         drdo: { keywords: ['drdo', 'defense', 'collaborate', 'military', 'research organization'], answer: "I've had the privilege of collaborating with DRDO scientists and defense officers on tech-driven projects, focusing on video communication layers." },
         companies: { keywords: ['recent company', 'company names', 'current company', 'total companies', 'name of companies you worked'], answer: "I’ve worked across four organizations: DRDO (Ministry of Defence), MicroGenesis TechSoft, Trinity Mobility, and currently serving as a Full Stack Developer at Tech Mahindra." }
