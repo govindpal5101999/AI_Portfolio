@@ -29,21 +29,23 @@
         <div id="mouth" class="mouth"></div>
       </div>
       <div class="button-group">
-        <button id="speakId" onclick="speakText()">Speak</button>
-        <button id="skipId" onclick="skipSpeech()" disabled>Skip</button>
+        <!-- <button id="speakId" onclick="speakText()">Speak</button>
+        <button id="skipId" onclick="skipSpeech()" disabled>Skip</button> -->
       </div>
     </div>
 
     <!-- Right Panel Column: Chatbot Dialogue Engine -->
     <div class="chat-panel">
-      <div class="speech-container" id="speech">
-        <p style="color: #888;">Click "Speak" to start the introduction or type a question below...</p>
-      </div>
+      <h2 id="btn-port-link">
+        </h4>
+        <div class="speech-container" id="speech">
+          <p style="color: #888;"></p>
+        </div>
 
-      <div id="chatBox">
-        <input id="userInput" type="text" placeholder="Ask something about my experience, skills, DRDO projects...">
-        <button id="askQuestions" onclick="handleUserMessage()">Ask</button>
-      </div>
+        <div id="chatBox">
+          <input id="userInput" type="text" placeholder="Ask something about my experience, skills, DRDO projects...">
+          <button id="askQuestions" onclick="handleUserMessage()">Ask</button>
+        </div>
     </div>
   </div>
   <script>
@@ -54,11 +56,12 @@
     // DOM Anchors Optimization
     const mouth = document.getElementById('mouth') || document.createElement('div');
     var speechDiv = document.getElementById('speech') || document.createElement('div');
+    var btnportlink = document.getElementById('btn-port-link') || document.createElement('div');
     var particleMesh, particlePositions, particleSpeeds;
     let handAnimInterval;
 
     init();
-
+    appendPortfolioAnchor();
     function init() {
       scene = new THREE.Scene();
 
@@ -332,8 +335,6 @@
         talkifyPlayer = null;
       }
 
-      // 2. STABILITY FIX: Explicitly flush out the browser's audio queue
-      window.speechSynthesis.cancel();
       endSpeech(true);
 
       model.visible = true;
@@ -355,7 +356,7 @@
       if (skipped) {
         speechDiv.textContent = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 5+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
       }
-      appendPortfolioAnchor();
+
     }
 
     function appendPortfolioAnchor() {
@@ -374,7 +375,7 @@
       portfolioLink.style.fontWeight = "bold";
       portfolioLink.classList.add('blinking');
       portfolioLink.addEventListener('click', () => { portfolioLink.classList.remove('blinking'); });
-      speechDiv.appendChild(portfolioLink);
+      btnportlink.appendChild(portfolioLink);
     }
 
     function stopSpeech() {

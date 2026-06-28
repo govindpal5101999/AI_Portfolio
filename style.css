@@ -53,6 +53,10 @@ body {
     min-width: 0;
 }
 
+.chat-panel h2 {
+    text-align: center;
+}
+
 /* WebGL Wrapper Viewport */
 .avatar-wrapper {
     position: relative;
