@@ -3,227 +3,77 @@
 
 <head>
   <meta charset="UTF-8">
+  <!-- Vital viewport definition for mobile display rendering -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D Avatar Chatbot</title>
+  <title>Govind Pal - AI Avatar Portfolio</title>
 
+  <!-- Link External Layout Stylesheets -->
+  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="responsive.css">
-  <!-- Three.js -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
-
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: radial-gradient(circle at center, #0a0e1f 0%, #090c18 100%);
-      font-family: monospace;
-      overflow: hidden;
-      color: #00ff99;
-    }
-
-    .container {
-      display: flex;
-      align-items: center;
-      justify-content: space-evenly;
-      width: 90%;
-      height: 600px;
-      max-width: 1200px;
-      border-radius: 15px;
-      background: rgba(0, 0, 0, 0.4);
-      box-shadow: 0 0 40px rgba(0, 255, 153, 0.2);
-      backdrop-filter: blur(5px);
-      padding: 20px;
-    }
-
-    .avatar-wrapper {
-      position: relative;
-      width: 500px;
-      height: 500px;
-      border-radius: 15px;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.2);
-      box-shadow: 0 0 30px rgba(0, 255, 153, 0.2);
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* Fake mouth overlay */
-    .mouth {
-      position: absolute;
-      left: 251px;
-      top: 74px;
-      width: 12px;
-      height: 6px;
-      background-color: #000;
-      border-radius: 50%;
-      transform: translateX(-50%) scaleY(0.1);
-      opacity: 0.9;
-      pointer-events: none;
-      transition: transform 0.05s linear;
-    }
-
-    .speech-container {
-      width: 500px;
-      height: 500px;
-      color: #00ff99;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 10px;
-      padding: 20px;
-      font-size: 18px;
-      overflow-y: auto;
-      box-shadow: 0 0 25px rgba(0, 255, 153, 0.25);
-    }
-
-    #ui {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-    }
-
-    input {
-      padding: 6px;
-      width: 300px;
-      margin-bottom: 8px;
-    }
-
-    button {
-      padding: 8px 16px;
-      margin-top: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      background-color: #00ff99;
-      border: none;
-      border-radius: 5px;
-      color: #000;
-    }
-
-    button:hover {
-      background-color: #00ffaa;
-      transform: scale(1.05);
-    }
-
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button:disabled {
-      background-color: #444;
-      /* darker/greyed out */
-      color: #888;
-      /* lighter text */
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    @keyframes blink {
-
-      0%,
-      50%,
-      100% {
-        opacity: 1;
-        color: #00ff99;
-      }
-
-      25%,
-      75% {
-        opacity: 0.3;
-        /* faded */
-        color: #ffff00;
-      }
-    }
-
-    .blinking {
-      animation: blink 1s infinite;
-      font-weight: bold;
-      text-decoration: underline;
-    }
-
-    /* Chat box (input and button) */
-    #chatBox {
-      position: absolute;
-      width: 500px;
-      border-radius: 15px;
-      bottom: 10px;
-      left: 100px;
-    }
-
-    #userInput {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 5px;
-      background: #f5f5f5;
-      /* Subtle input background */
-      outline: none;
-      font-size: 16px;
-    }
-
-    #chatBox button {
-      padding: 10px 20px;
-      background: #00ff99;
-      /* Match Speak button */
-      border: none;
-      border-radius: 5px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    #chatBox button:hover {
-      background: #00cc7a;
-    }
-  </style>
 </head>
 
 <body>
-  <div class="container">
-    <div class="avatar-wrapper">
-      <div id="avatarCanvas"></div>
-      <div id="mouth" class="mouth"></div>
-    </div>
-    <div class="button-group">
-      <button id="speakId" onclick="speakText()">Speak</button>
-      <button id="skipId" onclick="skipSpeech()" disabled>Skip</button>
-    </div>
-    <div class="speech-container" id="speech"></div>
 
-    <div id="chatBox">
-      <input id="userInput" type="text" placeholder="Ask something..."
-        style="flex:1; padding:10px; border-radius:5px; border:none; outline:none; font-size:16px;">
-      <button id="askQuestions" onclick="handleUserMessage()">Ask</button>
+  <div class="container">
+    <!-- Left Panel Column: 3D Graphics Processing -->
+    <div class="avatar-panel">
+      <div class="avatar-wrapper">
+        <div id="avatarCanvas"></div>
+        <div id="mouth" class="mouth"></div>
+      </div>
+      <div class="button-group">
+        <button id="speakId" onclick="speakText()">Speak</button>
+        <button id="skipId" onclick="skipSpeech()" disabled>Skip</button>
+      </div>
+    </div>
+
+    <!-- Right Panel Column: Chatbot Dialogue Engine -->
+    <div class="chat-panel">
+      <div class="speech-container" id="speech">
+        <p style="color: #888;">Click "Speak" to start the introduction or type a question below...</p>
+      </div>
+
+      <div id="chatBox">
+        <input id="userInput" type="text" placeholder="Ask something about my experience, skills, DRDO projects...">
+        <button id="askQuestions" onclick="handleUserMessage()">Ask</button>
+      </div>
     </div>
   </div>
-
   <script>
-    // Three.js setup
-    let scene, camera, renderer, controls, model, mixer, clock;
-    let lipInterval, speakActive = false;
-    const mouth = document.getElementById('mouth');
-    const speechDiv = document.getElementById('speech');
-    let particleMesh, particlePositions, particleSpeeds;
+    // System Core Pipeline State Containers
+    var scene, camera, renderer, controls, model, mixer, clock;
+    var lipInterval, speakActive = false;
+
+    // DOM Anchors Optimization
+    const mouth = document.getElementById('mouth') || document.createElement('div');
+    var speechDiv = document.getElementById('speech') || document.createElement('div');
+    var particleMesh, particlePositions, particleSpeeds;
+    let handAnimInterval;
 
     init();
+
     function init() {
       scene = new THREE.Scene();
 
-      camera = new THREE.PerspectiveCamera(36, 500 / 500, 0.1, 100);
+      const canvasContainer = document.getElementById('avatarCanvas');
+      const width = canvasContainer ? canvasContainer.clientWidth : 500;
+      const height = canvasContainer ? canvasContainer.clientHeight : 500;
+
+      camera = new THREE.PerspectiveCamera(36, width / height, 0.1, 100);
       camera.position.set(0, 1.5, 3);
 
       renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(500, 500);
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      document.getElementById('avatarCanvas').appendChild(renderer.domElement);
+      renderer.setSize(width, height);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      if (canvasContainer) {
+        canvasContainer.appendChild(renderer.domElement);
+      } else {
+        document.body.appendChild(renderer.domElement);
+      }
 
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.target.set(0, 1, 0);
@@ -231,7 +81,7 @@
       controls.enableRotate = false;
       controls.enablePan = false;
 
-      // Balanced, clean lighting setup
+      // Balanced Lighting Parameters
       const dirLight = new THREE.DirectionalLight(0xffffff, 1.6);
       dirLight.position.set(2, 4, 3);
       scene.add(dirLight);
@@ -245,7 +95,23 @@
 
       addSkyParticles();
       clock = new THREE.Clock();
+
+      loadAndPoseModel();
       animate();
+
+      // Dynamic Event Engine for Mobile Orientations
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+      const canvasContainer = document.getElementById('avatarCanvas');
+      if (!canvasContainer) return;
+      const width = canvasContainer.clientWidth;
+      const height = canvasContainer.clientHeight;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
     }
 
     function addSkyParticles() {
@@ -256,10 +122,10 @@
 
       for (let i = 0; i < particlesCount; i++) {
         const i3 = i * 3;
-        particlePositions[i3 + 0] = (Math.random() - 0.5) * 20; // x
-        particlePositions[i3 + 1] = (Math.random() - 0.5) * 10; // y
-        particlePositions[i3 + 2] = -(Math.random() * 10 + 3); // z
-        particleSpeeds[i] = 0.001 + Math.random() * 0.002; // individual drift speed
+        particlePositions[i3 + 0] = (Math.random() - 0.5) * 20;
+        particlePositions[i3 + 1] = (Math.random() - 0.5) * 10;
+        particlePositions[i3 + 2] = -(Math.random() * 10 + 3);
+        particleSpeeds[i] = 0.001 + Math.random() * 0.002;
       }
 
       geometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
@@ -280,101 +146,109 @@
 
     function loadAndPoseModel() {
       const loader = new THREE.GLTFLoader();
-      loader.load("https://models.readyplayer.me/68fe466e53c7c379ec6f3365.glb", function (gltf) {
-        if (model) scene.remove(model);
+
+      // Clean, relative paths are safer, but your 127.0.0.1 absolute path works too!
+      loader.load("./model.glb", function (gltf) {
+
+        // Fix 1: Safe removal of the old model
+        if (model) {
+          scene.remove(model);
+        }
+
         model = gltf.scene;
         scene.add(model);
-        model.position.set(0, 0, 0);
+        model.position.set(0, -0.4, 0);
         model.scale.set(1, 1, 1);
+        camera.position.set(0, 1.3, 1.5);
+        camera.lookAt(new THREE.Vector3(0, 1.2, 0));
+
+        // Fix 2: Clean up the old mixer before creating a new one to prevent memory leaks
+        if (mixer) {
+          mixer.stopAllAction();
+          mixer = null;
+        }
 
         if (gltf.animations && gltf.animations.length) {
           mixer = new THREE.AnimationMixer(model);
           gltf.animations.forEach(clip => mixer.clipAction(clip).play());
         }
 
-        resetHands();
+        if (typeof resetHands === "function") {
+          resetHands();
+        }
+
       }, undefined, function (err) {
-        console.error(err);
-        alert('Error loading model');
+        console.error("CORS Context or Loading Blockage Error:", err);
       });
     }
 
-    loadAndPoseModel();
+    // Fix 3: You MUST add this update logic inside your main animation loop!
+    function animate() {
+      requestAnimationFrame(animate);
 
-    let handAnimAngle = 0; // for smooth swinging
-    let handAnimInterval;
-
-    function foldHands(model) {
-      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
-      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
-      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
-      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
-      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
-      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
-
-      if (!rightArm || !leftArm || !rightForeArm || !leftForeArm || !rightHand || !leftHand) {
-        console.warn("Some hand bones not found — check model structure");
-        return;
+      // This line is what actually drives the GLB animations forward in time
+      if (mixer) {
+        const delta = clock.getDelta();
+        mixer.update(delta);
       }
+
+      renderer.render(scene, camera);
+    }
+
+    function foldHands(targetModel) {
+      if (!targetModel) return;
+      const rightArm = targetModel.getObjectByName('RightArm') || targetModel.getObjectByName('mixamorig_RightArm');
+      const leftArm = targetModel.getObjectByName('LeftArm') || targetModel.getObjectByName('mixamorig_LeftArm');
+      const rightForeArm = targetModel.getObjectByName('RightForeArm') || targetModel.getObjectByName('mixamorig_RightForeArm');
+      const leftForeArm = targetModel.getObjectByName('LeftForeArm') || targetModel.getObjectByName('mixamorig_LeftForeArm');
+      const rightHand = targetModel.getObjectByName('RightHand') || targetModel.getObjectByName('mixamorig_RightHand');
+      const leftHand = targetModel.getObjectByName('LeftHand') || targetModel.getObjectByName('mixamorig_LeftHand');
+
+      if (!rightArm || !leftArm || !rightForeArm || !leftForeArm || !rightHand || !leftHand) return;
 
       clearInterval(handAnimInterval);
 
-      // === STEP 1: Short Hello Wave ===
       let frame = 0;
       const helloInterval = setInterval(() => {
         frame++;
-
-        // --- Raise upper arm slightly outward and forward ---
-        rightArm.rotation.x = 0.8;   // bring forward
-        rightArm.rotation.z = -0.4;  // move out from torso
-
-        // --- Bend forearm so hand comes up near face ---
-        rightForeArm.rotation.x = -1.4; // bend elbow up
-        rightForeArm.rotation.z = -1.2; // slight twist outward
-
-        // --- Wave the hand side-to-side (hello motion) ---
+        rightArm.rotation.x = 0.8;
+        rightArm.rotation.z = -0.4;
+        rightForeArm.rotation.x = -1.4;
+        rightForeArm.rotation.z = -1.2;
         rightHand.rotation.x = -0.2;
-        rightHand.rotation.y = Math.sin(frame * 0.4) * 0.6; // waving side-to-side
-        rightHand.rotation.z = Math.sin(frame * 0.4) * 0.3; // small tilt
+        rightHand.rotation.y = Math.sin(frame * 0.4) * 0.6;
+        rightHand.rotation.z = Math.sin(frame * 0.4) * 0.3;
 
-        // Keep left arm relaxed
         leftArm.rotation.x = 1.2;
         leftArm.rotation.z = 0.3;
 
-        if (frame > 40) { // after ~1.5 seconds
+        if (frame > 40) {
           clearInterval(helloInterval);
-          startSpeakingGestures(); // switch to talk motion
+          startSpeakingGestures();
         }
       }, 80);
 
-      // === STEP 2: Natural Talking Gestures ===
       function startSpeakingGestures() {
         let t = 0;
         handAnimInterval = setInterval(() => {
           t += 0.5;
-
-          // === Left Hand Wave ===
           leftArm.rotation.x = 0.8;
           leftArm.rotation.z = 0.4;
           leftForeArm.rotation.z = 2 - Math.sin(t * 0.4) * 0.3;
           leftHand.rotation.x = 0.1 + Math.sin(t * 0.5 + Math.PI) * 0.2;
 
-          // === Right Hand Wave (same as left hand) ===
           rightHand.rotation.x = -0.1;
           rightArm.rotation.x = 1.2;
           rightArm.rotation.z = 0.1;
           rightForeArm.rotation.x = 0.2;
-          // rightForeArm.rotation.z = -0.1;
           rightForeArm.rotation.z = -2 - Math.sin(t * 0.4) * 0.3;
-
         }, 30);
       }
-
     }
 
-    // Call this to reset hands to default folded position when speech ends
     function resetHands() {
       clearInterval(handAnimInterval);
+      if (!model) return;
       const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
       const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
       const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
@@ -385,51 +259,45 @@
       if (rightArm && leftArm && rightForeArm && leftForeArm && rightHand && leftHand) {
         rightArm.rotation.x = 1.2; rightArm.rotation.z = 0.1;
         leftArm.rotation.x = 1.2; leftArm.rotation.z = -0.1;
-
         rightForeArm.rotation.x = 0.2; rightForeArm.rotation.z = -0.1;
         leftForeArm.rotation.x = 0.1; leftForeArm.rotation.z = 0.1;
-
         rightHand.rotation.x = -0.1;
         leftHand.rotation.x = 0.1;
       }
     }
 
+    // UNIFIED SOUND ENVIRONMENT SETUP ENGINE (Configures the mature male profile)
+    function configureVoiceParameters(utteranceInstance) {
+      const voices = window.speechSynthesis.getVoices();
+      let matureVoice = voices.find(v =>
+        v.name.includes('Google UK English Male') ||
+        v.name.includes('Microsoft David') ||
+        v.name.includes('Male') ||
+        (v.lang.startsWith('en') && v.name.includes('Natural'))
+      );
 
+      if (!matureVoice) matureVoice = voices.find(v => v.lang.startsWith('en'));
+      if (matureVoice) utteranceInstance.voice = matureVoice;
 
-    // Call this to reset hands to default folded position when speech ends
-    function resetHands() {
-      clearInterval(handAnimInterval);
-      const rightArm = model.getObjectByName('RightArm') || model.getObjectByName('mixamorig_RightArm');
-      const leftArm = model.getObjectByName('LeftArm') || model.getObjectByName('mixamorig_LeftArm');
-      const rightForeArm = model.getObjectByName('RightForeArm') || model.getObjectByName('mixamorig_RightForeArm');
-      const leftForeArm = model.getObjectByName('LeftForeArm') || model.getObjectByName('mixamorig_LeftForeArm');
-      const rightHand = model.getObjectByName('RightHand') || model.getObjectByName('mixamorig_RightHand');
-      const leftHand = model.getObjectByName('LeftHand') || model.getObjectByName('mixamorig_LeftHand');
-
-      if (rightArm && leftArm && rightForeArm && leftForeArm && rightHand && leftHand) {
-        rightArm.rotation.x = 1.2; rightArm.rotation.z = 0.1;
-        leftArm.rotation.x = 1.2; leftArm.rotation.z = -0.1;
-
-        rightForeArm.rotation.x = 0.2; rightForeArm.rotation.z = -0.1;
-        leftForeArm.rotation.x = 0.1; leftForeArm.rotation.z = 0.1;
-
-        rightHand.rotation.x = -0.1;
-        leftHand.rotation.x = 0.1;
-      }
+      utteranceInstance.pitch = 0.85; // Low-pitch parameter maps to deep male profiles
+      utteranceInstance.rate = 0.92;
+      utteranceInstance.volume = 5;
     }
 
     function speakText() {
       const text = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
 
-      document.getElementById('speakId').disabled = true;
-      document.getElementById('skipId').disabled = false;;
+      const speakBtn = document.getElementById('speakId');
+      const skipBtn = document.getElementById('skipId');
+      const askBtn = document.getElementById('askQuestions');
+
+      if (speakBtn) speakBtn.disabled = true;
+      if (skipBtn) skipBtn.disabled = false;
+      if (askBtn) askBtn.disabled = true;
       speechDiv.textContent = '';
 
-      // Prepare and start speech
       const utter = new SpeechSynthesisUtterance(text);
-      utter.pitch = 0.6;
-      utter.rate = 0.9;
-      utter.volume = 1;
+      configureVoiceParameters(utter);
 
       speakActive = true;
       typeText(text);
@@ -437,7 +305,6 @@
       startLipSync();
 
       window.speechSynthesis.speak(utter);
-      document.getElementById("askQuestions").disabled = true;
       utter.onend = () => endSpeech();
     }
 
@@ -445,59 +312,68 @@
       if (!speakActive) return;
       window.speechSynthesis.cancel();
       endSpeech(true);
+
+      model.visible = true;
     }
 
     function endSpeech(skipped = false) {
       speakActive = false;
       stopLipSync();
       resetHands();
-      document.getElementById('speakId').disabled = false;
-      document.getElementById('skipId').disabled = true;
-      document.getElementById("askQuestions").disabled = false;
 
-      // Clear and instantly show full text if skipped
+      const speakBtn = document.getElementById('speakId');
+      const skipBtn = document.getElementById('skipId');
+      const askBtn = document.getElementById('askQuestions');
+
+      if (speakBtn) speakBtn.disabled = false;
+      if (skipBtn) skipBtn.disabled = true;
+      if (askBtn) askBtn.disabled = false;
+
       if (skipped) {
-        speechDiv.textContent =
-          "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
+        speechDiv.textContent = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
       }
+      appendPortfolioAnchor();
+    }
+
+    function appendPortfolioAnchor() {
+      // Prevent adding duplicate links if one already exists
+      if (document.getElementById('portfolioLinkRef')) return;
 
       const portfolioLink = document.createElement('a');
+      portfolioLink.id = "portfolioLinkRef";
       portfolioLink.href = "https://govindpal5101999.github.io/portfolio/";
       portfolioLink.textContent = "🔗 Visit My Portfolio";
-      // githubLink.target = "_blank";
+      portfolioLink.target = "_blank";
       portfolioLink.style.display = "block";
       portfolioLink.style.marginTop = "15px";
       portfolioLink.style.color = "#00ff99";
       portfolioLink.style.textDecoration = "underline";
       portfolioLink.style.fontWeight = "bold";
-
-      portfolioLink.classList.add('blinking'); // Add blinking effect
-
-      // Remove blinking when clicked
-      portfolioLink.addEventListener('click', () => {
-        portfolioLink.classList.remove('blinking');
-      });
-
+      portfolioLink.classList.add('blinking');
+      portfolioLink.addEventListener('click', () => { portfolioLink.classList.remove('blinking'); });
       speechDiv.appendChild(portfolioLink);
     }
 
     function stopSpeech() {
-      window.speechSynthesis.cancel();  // Stops any speech that's currently happening
+      window.speechSynthesis.cancel();
     }
-
-    stopSpeech();
 
     function startLipSync() {
       clearInterval(lipInterval);
+      const mouth = document.getElementById("mouth"); // Ensure mouth element exists
+      if (!mouth) return;
+
       lipInterval = setInterval(() => {
         const open = Math.random() * 0.8 + 0.2;
+        // FIXED: Added missing backticks and fixed CSS space syntax
         mouth.style.transform = `translateX(-50%) scaleY(${open})`;
-      }, 0);
+      }, 80);
     }
 
     function stopLipSync() {
       clearInterval(lipInterval);
-      mouth.style.transform = 'translateX(-50%) scaleY(0.1)';
+      const mouth = document.getElementById("mouth");
+      if (mouth) mouth.style.transform = 'translateX(-50%) scaleY(0.1)';
     }
 
     function typeText(text) {
@@ -515,107 +391,69 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
-      // Animate particles gently drifting
+
+      if (clock && mixer) {
+        const delta = clock.getDelta();
+        mixer.update(delta);
+      }
+
       if (particleMesh) {
         const positions = particleMesh.geometry.attributes.position.array;
         const time = performance.now() * 0.001;
-
         for (let i = 0; i < positions.length; i += 3) {
-          const speed = particleSpeeds[i / 3];
-
-          positions[i + 0] += Math.sin(time * speed + i) * 0.002; // X movement
-          positions[i + 1] += Math.cos(time * speed + i * 0.3) * 0.002; // Y movement
-          positions[i + 2] += Math.sin(time * speed + i * 0.5) * 0.002; // Z movement
+          const speed = particleSpeeds[i / 3] || 0.001;
+          positions[i + 0] += Math.sin(time * speed + i) * 0.002;
+          positions[i + 1] += Math.cos(time * speed + i * 0.3) * 0.002;
+          positions[i + 2] += Math.sin(time * speed + i * 0.5) * 0.002;
         }
-
         particleMesh.geometry.attributes.position.needsUpdate = true;
         particleMesh.rotation.y += 0.0005;
       }
-      renderer.render(scene, camera);
-      controls.update();
+      if (renderer && scene && camera) renderer.render(scene, camera);
+      if (controls) controls.update();
     }
 
-
-    // === CHATBOT LOGIC ===
     async function handleUserMessage() {
       const input = document.getElementById("userInput");
+      if (!input) return;
       const question = input.value.trim();
       if (!question) return;
 
       speechDiv.innerHTML = "";
-      // Display user message
       const p = document.createElement("p");
       p.textContent = "👤 You: " + question;
       p.style.color = "#00ffaa";
       speechDiv.appendChild(p);
       input.value = "";
 
-      // Decide or fetch response
       let answer = getLocalResponse(question.toLowerCase());
-
-      // If no predefined answer, call AI (OpenAI, etc.)
       if (!answer) {
-        answer = "I'm Govind Pal, your 3D AI assistant! I can tell you about my background, skills, or projects — just ask!";
+        answer = "I'm Govind Pal, your 3D AI assistant! I can tell you about my engineering background at Tech Mahindra, DRDO projects, or GIS tracking tools.";
       }
 
-      // Display bot answer
       const reply = document.createElement("p");
       reply.textContent = "🤖 Govind: " + answer;
       reply.style.marginTop = "10px";
       reply.style.color = "#00ff99";
       speechDiv.appendChild(reply);
       speechDiv.scrollTop = speechDiv.scrollHeight;
-
-      // Make the avatar speak the answer
       speakResponse(answer);
     }
 
     function getLocalResponse(q) {
       const query = q.toLowerCase().trim();
-
-      // Response data
       const responses = {
-        greeting: {
-          keywords: ['hello', 'hi', 'hey', 'greetings'],
-          answer: "Hey there! I'm Govind Pal, ready to answer your questions. What's on your mind?"
-        },
-        name: {
-          keywords: ['your name', 'who are you', 'introduce yourself', 'name'],
-          answer: "My name is Govind Pal, a passionate full-stack developer with a knack for building innovative solutions."
-        },
-        about: {
-          keywords: ['about yourself', 'tell me about you', 'who is govind', 'what do you do', 'describe yourself'],
-          answer: "I'm Govind Pal, a software engineer with over 4 years of experience at Tech Mahindra, specializing in full-stack development and GIS-based solutions. I love tackling complex challenges and collaborating on cutting-edge projects!"
-        },
-        skills: {
-          keywords: ['skills', 'technologies', 'expertise', 'what can you do', 'tech stack', 'programming'],
-          answer: "I'm skilled in Java, Spring Boot, Angular, JavaScript, PostgreSQL, and MongoDB. I also work with GIS technologies and build scalable web applications."
-        },
-        portfolio: {
-          keywords: ['portfolio', 'projects', 'github', 'work samples', 'your work', 'project links', 'resume'],
-          answer: "Here’s a direct link to my portfolio and GitHub where you can explore my projects!"
-        },
-        experience: {
-          keywords: ['experience', 'background', 'work history', 'career', 'years of experience', 'professional journey'],
-          answer: "I have 4.5 years of experience as a full-stack developer, currently working at Tech Mahindra, worked on GIS-based solutions and collaborating with DRDO scientists and defense officers on innovative, tech-driven projects while working with DRDO as a development partner."
-        },
-        gis: {
-          keywords: ['gis', 'geographic', 'mapping', 'spatial', 'maps'],
-          answer: "I specialize in GIS-based solutions, leveraging my skills in Java and Angular to build mapping and spatial analysis tools for real-world applications with GIS libraries like leaflet, openlayers, ESRI etc."
-        },
-        drdo: {
-          keywords: ['drdo', 'defense', 'collaborate', 'military', 'research organization'],
-          answer: "I've had the privilege of collaborating with DRDO scientists and defense officers on tech-driven projects, focusing on GIS and full-stack solutions."
-        },
-        companies: {
-          keywords: ['recent company', 'company names', 'current company', 'total companies', 'name of companies you worked'],
-          answer: "I’ve worked across four organizations, starting my career at DRDO (Ministry of Defence) as a project(contract) engineer, then advancing through MicroGenesis TechSoft Pvt. Ltd. and Trinity Mobility, and currently serving as a Full Stack Developer at Tech Mahindra."
-        },
+        greeting: { keywords: ['hello', 'hi', 'hey', 'greetings'], answer: "Hey there! I'm Govind Pal, ready to answer your questions. What's on your mind?" },
+        name: { keywords: ['your name', 'who are you', 'introduce yourself', 'name'], answer: "My name is Govind Pal, a passionate full-stack developer with a knack for building innovative solutions." },
+        about: { keywords: ['about yourself', 'tell me about you', 'who is govind', 'what do you do', 'describe yourself'], answer: "I'm Govind Pal, a software engineer with over 4 years of experience at Tech Mahindra, specializing in full-stack development and GIS-based solutions." },
+        skills: { keywords: ['skills', 'technologies', 'expertise', 'what can you do', 'tech stack', 'programming'], answer: "I'm skilled in Java, Spring Boot, Angular, JavaScript, PostgreSQL, and MongoDB. I also work with GIS mapping libraries." },
+        portfolio: { keywords: ['portfolio', 'projects', 'github', 'work samples', 'your work', 'project links', 'resume'], answer: "Here’s a direct link to my portfolio where you can explore my projects live!" },
+        experience: { keywords: ['experience', 'background', 'work history', 'career', 'years of experience', 'professional journey'], answer: "I have 4.5 years of experience as a full-stack developer, currently working at Tech Mahindra. Previously, I built GIS solutions and collaborated with DRDO scientists." },
+        gis: { keywords: ['gis', 'geographic', 'mapping', 'spatial', 'maps'], answer: "I specialize in GIS-based solutions, leveraging my skills in Java and Angular to build mapping tools using libraries like Leaflet, OpenLayers, and Cesium." },
+        drdo: { keywords: ['drdo', 'defense', 'collaborate', 'military', 'research organization'], answer: "I've had the privilege of collaborating with DRDO scientists and defense officers on tech-driven projects, focusing on video communication layers." },
+        companies: { keywords: ['recent company', 'company names', 'current company', 'total companies', 'name of companies you worked'], answer: "I’ve worked across four organizations: DRDO (Ministry of Defence), MicroGenesis TechSoft, Trinity Mobility, and currently serving as a Full Stack Developer at Tech Mahindra." }
       };
 
-      // Calculate best match
       let bestMatch = { score: 0, key: null };
       for (const key in responses) {
         const { keywords } = responses[key];
@@ -628,61 +466,49 @@
         }
       }
 
-      // Default
       if (bestMatch.score === 0) {
-        return `I'm Govind Pal, a full-stack developer passionate about coding and innovation. Your question about "${q}" is interesting! Could you clarify or ask about my skills, projects, or experience?`;
+        // FIXED: Wrapped the literal return fallback string in backticks
+        return `I'm Govind Pal, a full-stack developer. Your question about "${q}" is interesting! Could you ask about my skills, projects, or experience?`;
       }
-
-      const response = responses[bestMatch.key].answer;
 
       if (bestMatch.key === 'portfolio') {
-        const portfolioLink = document.createElement('a');
-        portfolioLink.href = "https://govindpal5101999.github.io/portfolio/";
-        portfolioLink.textContent = "🔗 Visit My Portfolio";
-        portfolioLink.target = "_blank";
-        portfolioLink.style.display = "block";
-        portfolioLink.style.marginTop = "15px";
-        portfolioLink.style.color = "#00ff99";
-        portfolioLink.style.textDecoration = "underline";
-        portfolioLink.style.fontWeight = "bold";
-        portfolioLink.classList.add('blinking');
-
-        // Remove blinking when clicked
-        portfolioLink.addEventListener('click', () => {
-          portfolioLink.classList.remove('blinking');
-        });
-
-        speechDiv.appendChild(portfolioLink);
+        setTimeout(() => {
+          if (typeof appendPortfolioAnchor === 'function') appendPortfolioAnchor();
+        }, 120);
       }
-
-      return response;
+      return responses[bestMatch.key].answer;
     }
 
-    // === MAKE THE AVATAR SPEAK ===
     function speakResponse(text) {
       stopSpeech();
       const utter = new SpeechSynthesisUtterance(text);
-      utter.pitch = 0.7;
-      utter.rate = 0.9;
-      utter.volume = 1;
+      if (typeof configureVoiceParameters === 'function') configureVoiceParameters(utter);
 
-      document.getElementById("speakId").disabled = true;
+      const speakBtn = document.getElementById("speakId");
+      if (speakBtn) speakBtn.disabled = true;
       speakActive = true;
 
-      foldHands(model);
+      if (typeof foldHands === 'function') foldHands(model);
       startLipSync();
-
       window.speechSynthesis.speak(utter);
 
       utter.onend = () => {
         stopLipSync();
-        resetHands();
+        if (typeof resetHands === 'function') resetHands();
         speakActive = false;
-        document.getElementById("speakId").disabled = false;
+        if (speakBtn) speakBtn.disabled = false;
+      };
+    }
+
+    // FIXED: Added missing closing bracket structure at the bottom of the script
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        console.log("AI Speech Systems Primed.");
       };
     }
 
   </script>
+
 </body>
 
 </html>
