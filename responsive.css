@@ -89,7 +89,7 @@
     width: 3.5vw;
     /* Slightly larger relative scale on tiny viewports */
     height: 1vw;
-    top: 24%;
+    top: 23%;
     /* Tiny vertical tweak if mobile framing shifts */
   }
 }
