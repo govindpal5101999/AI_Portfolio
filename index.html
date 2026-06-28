@@ -10,9 +10,14 @@
   <!-- Link External Layout Stylesheets -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="responsive.css">
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/talkify-tts@4.0.0/dist/styles/classic-control-center/colors.min.css">
+
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/talkify-tts@4.0.0/dist/talkify.min.js"></script>
+
 </head>
 
 <body>
@@ -266,23 +271,7 @@
       }
     }
 
-    // UNIFIED SOUND ENVIRONMENT SETUP ENGINE (Configures the mature male profile)
-    function configureVoiceParameters(utteranceInstance) {
-      const voices = window.speechSynthesis.getVoices();
-      let matureVoice = voices.find(v =>
-        v.name.includes('Google UK English Male') ||
-        v.name.includes('Microsoft David') ||
-        v.name.includes('Male') ||
-        (v.lang.startsWith('en') && v.name.includes('Natural'))
-      );
-
-      if (!matureVoice) matureVoice = voices.find(v => v.lang.startsWith('en'));
-      if (matureVoice) utteranceInstance.voice = matureVoice;
-
-      utteranceInstance.pitch = 0.85; // Low-pitch parameter maps to deep male profiles
-      utteranceInstance.rate = 0.92;
-      utteranceInstance.volume = 5;
-    }
+    let talkifyPlayer = null;
 
     function speakText() {
       const text = "Hello there..! I’m Govind Pal, a results-driven Full Stack Developer with 4+ years of experience, currently working at Tech Mahindra. Skilled in Java, Spring Boot, Angular, and JavaScript, with strong expertise in PostgreSQL, MySQL, and MongoDB. I’ve delivered GIS-based solutions using Leaflet, GeoServer, and NCWMS, and collaborated with DRDO scientists and defense teams on innovative, tech-driven projects.";
@@ -294,22 +283,57 @@
       if (speakBtn) speakBtn.disabled = true;
       if (skipBtn) skipBtn.disabled = false;
       if (askBtn) askBtn.disabled = true;
-      speechDiv.textContent = '';
-
-      const utter = new SpeechSynthesisUtterance(text);
-      configureVoiceParameters(utter);
+      if (typeof speechDiv !== 'undefined' && speechDiv) speechDiv.textContent = '';
 
       speakActive = true;
       typeText(text);
       foldHands(model);
       startLipSync();
 
-      window.speechSynthesis.speak(utter);
-      utter.onend = () => endSpeech();
+      try {
+        // 1. FIX: Initialize Talkify explicitly using browser-native local engines (No API keys or logins!)
+        talkifyPlayer = new talkify.Html5Player();
+
+        // 2. OPTIONAL CONFIG: Find a clean local male voice if available on the device
+        const localVoices = window.speechSynthesis.getVoices();
+        let selectedVoice = localVoices.find(v =>
+          v.name.includes('Google UK English Male') ||
+          v.name.includes('David') ||
+          v.name.includes('Male')
+        );
+
+        if (selectedVoice) {
+          // Use forceVoice with the native voice object for HTML5 Player mapping
+          talkifyPlayer.forceVoice(selectedVoice);
+        }
+
+        // 3. Play the text directly
+        talkifyPlayer.playText(text);
+
+        // 4. FIX: Use Talkify's proper event listener mapping framework
+        talkifyPlayer.subscribeTo({
+          onItemFinished: function () {
+            endSpeech();
+          }
+        });
+
+      } catch (error) {
+        console.error("Frictionless Voice Engine failed, falling back safely:", error);
+        endSpeech();
+      }
     }
 
     function skipSpeech() {
       if (!speakActive) return;
+      // Cleanly kill the Talkify audio playback streams
+      if (talkifyPlayer) {
+        if (typeof talkifyPlayer.pause === "function") {
+          talkifyPlayer.pause();
+        }
+        talkifyPlayer = null;
+      }
+
+      // 2. STABILITY FIX: Explicitly flush out the browser's audio queue
       window.speechSynthesis.cancel();
       endSpeech(true);
 
